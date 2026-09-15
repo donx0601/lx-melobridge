@@ -1,0 +1,23 @@
+{
+	# Clients commonly omit SNI when connecting to a literal IP address. Serve
+	# the managed IP certificate as the default in that case.
+	default_sni {$PUBLIC_HOST}
+}
+
+{$PUBLIC_HOST} {
+	tls {
+		issuer acme {
+			profile shortlived
+		}
+	}
+	encode zstd gzip
+	handle /source-admin {
+		redir /source-admin/ 308
+	}
+	handle_path /source-admin/* {
+		reverse_proxy lx-source-runner:3200
+	}
+	handle {
+		reverse_proxy lx-melobridge-gateway:4780
+	}
+}

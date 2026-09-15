@@ -1,0 +1,13 @@
+{
+  "name": "lx-melobridge-source-runner",
+  "version": "0.5.5",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "check": "node --check src/runtime.mjs && node --check src/server.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

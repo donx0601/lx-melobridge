@@ -1,0 +1,17 @@
+[
+  {
+    "key": "lx_catalog",
+    "label": "洛雪目录",
+    "enabled": true,
+    "baseUrl": "http://lx-catalog-adapter:3100",
+    "searchPath": "/search",
+    "resolvePath": "/resolve/{id}",
+    "lyricPath": "/lyric/{id}",
+    "playlistSearchPath": "/playlist/search",
+    "playlistDetailPath": "/playlist/detail",
+    "chartListPath": "/chart/list",
+    "chartDetailPath": "/chart/detail",
+    "timeoutMs": 60000,
+    "headers": {}
+  }
+]

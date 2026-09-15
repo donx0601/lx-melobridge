@@ -1,0 +1,15 @@
+{
+  "name": "lx-melobridge",
+  "version": "0.5.5",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/catalog-adapter.integration.test.mjs test/codec.test.mjs test/gateway.integration.test.mjs test/lx-runner.integration.test.mjs test/providers.test.mjs test/resolver.integration.test.mjs test/search-query.test.mjs test/state.test.mjs catalog-adapter/test/catalogs.test.mjs",
+    "check": "node --check src/server.mjs && node --check catalog-adapter/src/server.mjs && node --check catalog-adapter/src/playlists.mjs && node --check catalog-adapter/src/charts.mjs && node --check resolver-template/src/server.mjs && node --check lx-source-runner/src/runtime.mjs && node --check lx-source-runner/src/server.mjs && npm test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "tracks": [
+    {
+      "source": "kg",
+      "match": {
+        "name": "replace-with-title",
+        "singer": "replace-with-artist"
+      },
+      "qualities": {
+        "128k": {
+          "url": "https://media.example.com/authorized/song.mp3",
+          "headers": {}
+        },
+        "flac": {
+          "url": "https://media.example.com/authorized/song.flac",
+          "headers": {
+            "Authorization": "Bearer replace-if-required"
+          },
+          "expiresAt": "2026-09-07T12:00:00Z"
+        }
+      }
+    }
+  ]
+}

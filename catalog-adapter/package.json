@@ -1,0 +1,14 @@
+{
+  "name": "lx-melobridge-catalog-adapter",
+  "version": "0.5.5",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test",
+    "check": "node --check src/server.mjs && node --check src/charts.mjs && node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "key": "example",
+    "label": "示例音源",
+    "enabled": false,
+    "baseUrl": "http://provider-service:3000",
+    "searchPath": "/search",
+    "resolvePath": "/resolve/{id}",
+    "timeoutMs": 10000,
+    "headers": {}
+  }
+]

@@ -1,0 +1,119 @@
+services:
+  lx-source-runner:
+    image: m.daocloud.io/docker.io/library/node:22-alpine
+    container_name: lx-melobridge-source-runner
+    restart: unless-stopped
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
+    working_dir: /runner
+    command: ["node", "/runner/src/server.mjs"]
+    ports:
+      - "127.0.0.1:4781:3200"
+    environment:
+      PORT: "3200"
+      SOURCE_DIR: "/sources"
+      DATA_DIR: "/data"
+      ACTIVE_SOURCE: "${ACTIVE_SOURCE:-}"
+      AUTO_SCRIPT_FALLBACK: "${AUTO_SCRIPT_FALLBACK:-false}"
+      FALLBACK_SOURCES: "${FALLBACK_SOURCES:-}"
+      MAX_SOURCE_ATTEMPTS: "5"
+      # A fallback source may need 10-16 seconds on its first uncached request.
+      SOURCE_ATTEMPT_TIMEOUT_MS: "${SOURCE_ATTEMPT_TIMEOUT_MS:-20000}"
+      MEDIA_PROBE_TIMEOUT_MS: "8000"
+      # Cloud hosts see more region/IP-specific error pages. Probe every
+      # platform before returning a URL to the mobile client.
+      MEDIA_PROBE_SOURCES: "*"
+      # Keep pre-resolved URLs long enough for several songs. If a URL expires
+      # early, the gateway forces one fresh resolution before returning an error.
+      RESOLVE_CACHE_TTL_MS: "900000"
+      LYRIC_CACHE_TTL_MS: "3600000"
+      VERIFY_MEDIA_URL: "true"
+      RESOLVER_TOKEN: "${RESOLVER_TOKEN:?Set RESOLVER_TOKEN in .env}"
+      RESOLVER_TIMEOUT_MS: "60000"
+      ADMIN_USER: "${ADMIN_USER:?Set ADMIN_USER in .env}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}"
+      ADMIN_BASE_PATH: "/source-admin"
+      ALLOW_SOURCE_PRIVATE_NETWORK: "false"
+    volumes:
+      - "./lx-source-runner/src:/runner/src:ro"
+      - "./sources:/sources:ro"
+      - "./runner-data:/data"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  lx-catalog-adapter:
+    image: m.daocloud.io/docker.io/library/node:22-alpine
+    container_name: lx-melobridge-catalog-adapter
+    restart: unless-stopped
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
+    working_dir: /adapter
+    command: ["node", "/adapter/src/server.mjs"]
+    environment:
+      PORT: "3100"
+      RESOLVER_URL: "http://lx-source-runner:3200"
+      RESOLVER_TOKEN: "${RESOLVER_TOKEN:?Set RESOLVER_TOKEN in .env}"
+      PLATFORM_FALLBACK: "true"
+      MAX_PLATFORM_ATTEMPTS: "5"
+      # Some LX sources need 10-16 seconds for the first resolution. Successful
+      # results are cached by the runner, so later playback remains fast.
+      RESOLVER_ATTEMPT_TIMEOUT_MS: "20000"
+    volumes:
+      - "./catalog-adapter/src:/adapter/src:ro"
+    depends_on:
+      - lx-source-runner
+
+  lx-melobridge-gateway:
+    image: m.daocloud.io/docker.io/library/node:22-alpine
+    container_name: lx-melobridge-gateway
+    restart: unless-stopped
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
+    working_dir: /app
+    command: ["node", "/app/src/server.mjs"]
+    expose:
+      - "4780"
+    environment:
+      PORT: "4780"
+      GATEWAY_USER: "${GATEWAY_USER:?Set GATEWAY_USER in .env}"
+      GATEWAY_PASSWORD: "${GATEWAY_PASSWORD:?Set GATEWAY_PASSWORD in .env}"
+      NAVIDROME_URL: ""
+      PROVIDERS_FILE: "/config/providers.default.json"
+      DATA_DIR: "/data"
+      SOURCE_LABEL_MODE: "prefix"
+      SHOW_QUALITY_LABEL: "true"
+      ONLINE_PLAYBACK_QUALITY: "320k"
+      RESOLVE_CACHE_TTL_MS: "900000"
+      PREFETCH_NEXT_TRACKS: "3"
+      PREFETCH_CONCURRENCY: "2"
+      PLAYBACK_CONTEXT_TTL_MS: "3600000"
+      ALLOW_PRIVATE_STREAMS: "false"
+    volumes:
+      - "./src:/app/src:ro"
+      - "./config:/config:ro"
+      - "./data:/data"
+    depends_on:
+      - lx-catalog-adapter
+
+  caddy:
+    image: m.daocloud.io/docker.io/library/caddy:2-alpine
+    container_name: lx-melobridge-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      PUBLIC_HOST: "${PUBLIC_HOST:?Set PUBLIC_HOST in .env}"
+    volumes:
+      - "./Caddyfile:/etc/caddy/Caddyfile:ro"
+      - "caddy-data:/data"
+      - "caddy-config:/config"
+    depends_on:
+      - lx-melobridge-gateway
+
+volumes:
+  caddy-data:
+  caddy-config:

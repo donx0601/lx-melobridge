@@ -1,0 +1,10 @@
+.git
+data
+runner-data
+dist
+config/providers.json
+sources/*.js
+!sources/example-authorized.js
+*.log
+.env
+.install-credentials.txt
