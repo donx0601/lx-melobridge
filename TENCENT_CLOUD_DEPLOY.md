@@ -141,7 +141,7 @@ https://你的域名或公网IP/healthz
 ```json
 {
   "ok": true,
-  "version": "0.5.5",
+  "version": "0.5.6",
   "navidromeConfigured": false,
   "providers": [
     {

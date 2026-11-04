@@ -2,6 +2,7 @@ import { createServer } from 'node:http'
 import { decodeCatalogId, FALLBACK_SOURCE_ORDER, findAlternateCatalogTrackForSource, searchCatalogs } from './catalogs.mjs'
 import { getPlaylistDetail, searchPlaylists } from './playlists.mjs'
 import { getChartDetail, listCharts } from './charts.mjs'
+import { fetchCatalogLyrics } from './lyrics.mjs'
 
 const port = positive(process.env.PORT, 3100)
 const resolverUrl = String(process.env.RESOLVER_URL || '').replace(/\/$/, '')
@@ -12,7 +13,7 @@ const platformFallback = process.env.PLATFORM_FALLBACK !== 'false'
 const fastPlatformFallback = process.env.FAST_PLATFORM_FALLBACK !== 'false'
 const maxPlatformAttempts = positive(process.env.MAX_PLATFORM_ATTEMPTS, 5)
 const resolveCacheTtlMs = positive(process.env.RESOLVE_CACHE_TTL_MS, 120000)
-const adapterVersion = '0.5.5'
+const adapterVersion = '0.5.6'
 let lastResolution = null
 const resolutionCache = new Map()
 
@@ -150,7 +151,6 @@ async function resolve(res, url) {
 }
 
 async function lyric(res, url) {
-  if (!resolverUrl) return json(res, 501, { error: 'RESOLVER_URL is not configured' })
   const encoded = decodeURIComponent(url.pathname.slice('/lyric/'.length))
   const decoded = decodeCatalogId(encoded)
   const attempts = []
@@ -177,17 +177,22 @@ async function lyric(res, url) {
         continue
       }
     }
-    const result = await requestResolverEndpoint('/lyric', candidate, '')
-    const value = parseJson(result.body)
-    if (result.ok && value?.lyric) {
+    let directError
+    const direct = await fetchCatalogLyrics(candidate.source, candidate.musicInfo).catch(error => {
+      directError = error.message
+      return null
+    })
+    const result = !direct && resolverUrl ? await requestResolverEndpoint('/lyric', candidate, '') : null
+    const value = direct || (result?.ok ? parseJson(result.body) : null)
+    if (typeof value?.lyric === 'string' && value.lyric.trim()) {
       return json(res, 200, {
         ...value,
         resolvedSource: candidate.source,
         fallbackFrom: candidate.original ? null : decoded.source,
-        platformAttempts: [...attempts, { source: candidate.source, ok: true }],
+        platformAttempts: [...attempts, { source: candidate.source, ok: true, via: direct ? 'catalog' : 'script' }],
       })
     }
-    attempts.push({ source: candidate.source, ok: false, error: result.error || 'No lyrics returned' })
+    attempts.push({ source: candidate.source, ok: false, error: result?.error || directError || 'No lyrics returned' })
   }
   return json(res, 404, { error: 'No lyrics found', attempts })
 }

@@ -5,7 +5,7 @@ import { config } from './config.mjs'
 import { subsonicXml } from './codec.mjs'
 
 export const API_VERSION = '1.16.1'
-export const SERVER_VERSION = '0.5.5'
+export const SERVER_VERSION = '0.5.6'
 
 const safeEqual = (left, right) => {
   const a = Buffer.from(String(left))

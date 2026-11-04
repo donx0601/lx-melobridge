@@ -23,7 +23,7 @@ const mediaProbeTimeoutMs = positive(process.env.MEDIA_PROBE_TIMEOUT_MS, 8000)
 const resolveCacheTtlMs = positive(process.env.RESOLVE_CACHE_TTL_MS, 120000)
 const lyricCacheTtlMs = positive(process.env.LYRIC_CACHE_TTL_MS, 3600000)
 const sourceWarmupUrls = String(process.env.SOURCE_WARMUP_URLS || 'https://interface3.music.163.com/').split(',').map(value => value.trim()).filter(Boolean)
-const runnerVersion = '0.5.5'
+const runnerVersion = '0.5.6'
 let active = null
 let activeFilename = null
 let lastError = null

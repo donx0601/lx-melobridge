@@ -131,7 +131,7 @@ test('LX runner loads, resolves, and hot-switches source scripts', { timeout: 15
   t.after(async () => { child.kill(); await rm(root, { recursive: true, force: true }) })
   await waitReady(`http://127.0.0.1:${port}/healthz`, child)
   const initialHealth = await (await fetch(`http://127.0.0.1:${port}/healthz`)).json()
-  assert.equal(initialHealth.version, '0.5.5')
+  assert.equal(initialHealth.version, '0.5.6')
 
   const headers = { 'content-type': 'application/json', authorization: 'Bearer runner-token' }
   const first = await fetch(`http://127.0.0.1:${port}/resolve`, {
@@ -182,7 +182,7 @@ test('LX runner loads, resolves, and hot-switches source scripts', { timeout: 15
   await new Promise(resolve => setTimeout(resolve, 250))
   const healthAfterBackgroundFailure = await fetch(`http://127.0.0.1:${port}/healthz`)
   assert.equal(healthAfterBackgroundFailure.status, 200)
-  assert.equal((await healthAfterBackgroundFailure.json()).version, '0.5.5')
+  assert.equal((await healthAfterBackgroundFailure.json()).version, '0.5.6')
   assert.equal(child.exitCode, null)
 })
 

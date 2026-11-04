@@ -47,7 +47,7 @@ test('catalog adapter forwards lyrics for an opaque catalog id', { timeout: 1000
     const chunks = []
     for await (const chunk of req) chunks.push(chunk)
     const input = JSON.parse(Buffer.concat(chunks).toString('utf8'))
-    assert.equal(input.source, 'kw')
+    assert.equal(input.source, 'mg')
     assert.equal(input.musicInfo.songmid, '42')
     res.setHeader('content-type', 'application/json')
     res.end(JSON.stringify({ lyric: '[00:01.00]测试歌词' }))
@@ -74,7 +74,7 @@ test('catalog adapter forwards lyrics for an opaque catalog id', { timeout: 1000
   })
   t.after(() => child.kill())
   await waitReady(`http://127.0.0.1:${port}/healthz`, child)
-  const id = Buffer.from(JSON.stringify({ v: 1, source: 'kw', musicInfo: { songmid: '42' } })).toString('base64url')
+  const id = Buffer.from(JSON.stringify({ v: 1, source: 'mg', musicInfo: { songmid: '42' } })).toString('base64url')
   const response = await fetch(`http://127.0.0.1:${port}/lyric/${id}`)
   assert.equal(response.status, 200)
   assert.equal((await response.json()).lyric, '[00:01.00]测试歌词')
